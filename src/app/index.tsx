@@ -1,34 +1,38 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Stack } from "expo-router";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 
+const polls = [1, 2, 3];
 export default function Page() {
   return (
-    <View style={styles.container}>
-      <View style={styles.main}>
-        <Text style={styles.title}>Hello World</Text>
-        <Text style={styles.subtitle}>Hello world .</Text>
-      </View>
-    </View>
+    <>
+      <Stack.Screen options={{ title: "Polls" }} />
+      <FlatList
+        data={polls}
+        contentContainerStyle={styles.container}
+        renderItem={() => (
+          <View style={styles.pollContainer}>
+            <Text style={styles.pollTitle}>Example Poll Question:</Text>
+          </View>
+        )}
+      />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    padding: 24,
+    backgroundColor: "gainsboro",
+    padding: 10,
+    gap: 5,
   },
-  main: {
-    flex: 1,
-    justifyContent: "center",
-    maxWidth: 960,
-    marginHorizontal: "auto",
+  pollContainer: {
+    backgroundColor: "white",
+    padding: 10,
+    borderRadius: 10,
   },
-  title: {
-    fontSize: 64,
+  pollTitle: {
     fontWeight: "bold",
-  },
-  subtitle: {
-    fontSize: 36,
-    color: "#38434D",
+    fontSize: 16,
   },
 });
