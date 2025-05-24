@@ -1,58 +1,44 @@
-import { Stack, useLocalSearchParams } from "expo-router";
-import { Text, View, StyleSheet, Pressable, Button } from "react-native";
-import { Feather } from "@expo/vector-icons";
-import { useState } from "react";
+import { AntDesign } from "@expo/vector-icons";
+import { Link, Stack } from "expo-router";
+import { FlatList, StyleSheet, Text } from "react-native";
 
-const poll = {
-  question: "React Native vs Flutter ?",
-  options: ["React Native FTW", "Flutter", "SwiftUI"],
-};
+const polls = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }];
 
-export default function PollDetails() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const [selected, setSelected] = useState("React Native FTW");
-
-  const vote = () => {
-    console.log("Vote:", selected);
-  };
-
+export default function Page() {
   return (
-    <View style={styles.container}>
-      <Stack.Screen options={{ title: "Poll Voting" }} />
-      <Text style={styles.question}>{poll.question}</Text>
-
-      <View style={styles.optionsContainer}>
-        {poll.options.map((option) => (
-          <Pressable onPress={() => setSelected(option)} style={styles.optionContainer} key={option}>
-            <Feather name={option === selected ? "check-circle" : "circle"} size={18} color={option === selected ? "green" : "gray"} />
-            <Text>{option}</Text>
-          </Pressable>
-        ))}
-      </View>
-      <Button onPress={vote} title="Vote" />
-    </View>
+    <>
+      <Stack.Screen options={{ title: "Polls",headerRight:()=>
+        <Link href={'/polls/new'}><AntDesign name="plus" size={24} color="black" /></Link>  }} />
+      <FlatList
+        data={polls}
+        contentContainerStyle={styles.container}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <Link style={styles.pollContainer} href={`/polls/${item.id}`}>
+            <Text style={styles.pollTitle}>
+              {item.id}. Example Poll Question:
+            </Text>
+          </Link>
+        )}
+      />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: "gainsboro",
     padding: 10,
-    gap: 20,
-  },
-  question: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "dimgray",
-  },
-  optionsContainer: {
     gap: 5,
   },
-  optionContainer: {
+  pollContainer: {
     backgroundColor: "white",
     padding: 10,
-    borderRadius: 5,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
+    borderRadius: 10,
+  },
+  pollTitle: {
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });
