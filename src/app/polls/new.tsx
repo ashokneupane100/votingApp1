@@ -1,10 +1,11 @@
 import { Stack } from "expo-router";
 import { useState } from "react";
 import { Text, View, StyleSheet, TextInput, Button } from "react-native";
+import { Feather } from "@expo/vector-icons";
 
 export default function CreatePoll() {
-  const[question,setQuestion] = useState("")
-
+  const [question, setQuestion] = useState("");
+  const [options, setOptions] = useState(["", ""]);
 
   const createPoll = () => {
     console.log("Creating poll...");
@@ -13,13 +14,13 @@ export default function CreatePoll() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: "Create Poll" }} />
-      
+
       <View style={styles.section}>
         <Text style={styles.label}>Poll Title</Text>
-        <TextInput 
+        <TextInput
           value={question}
           onChangeText={setQuestion}
-          placeholder="Type your question here" 
+          placeholder="Type your question here"
           style={styles.input}
           multiline
           placeholderTextColor="#9CA3AF"
@@ -29,15 +30,37 @@ export default function CreatePoll() {
       <View style={styles.section}>
         <Text style={styles.label}>Answer Options</Text>
         <View style={styles.optionsContainer}>
-          <TextInput 
-            placeholder="First option" 
-            style={styles.input}
-            placeholderTextColor="#9CA3AF"
-          />
-          <TextInput 
-            placeholder="Second option" 
-            style={styles.input}
-            placeholderTextColor="#9CA3AF"
+          <View>
+            {options.map((option, index) => (
+              <View key={option} style={{justifyContent:"center"}}>
+              <TextInput
+                value={option}
+                onChangeText={(text) => {
+                  const updated = [...options];
+                  updated[index] = text;
+                  setOptions(updated);
+                }}
+                key={index}
+                placeholder={`Option ${index + 1}`}
+                style={styles.input}
+              />
+              <Feather name="x" size={18} color="gray"
+              onPress={()=>{
+                //delete options based on index
+                const updated = [...options];
+                updated.splice(index,3);
+                setOptions(updated);
+              }} 
+              
+              style={{position:"absolute",right:10}} />
+               </View>
+            ))}
+           
+          </View>
+
+          <Button
+            title="Add Option"
+            onPress={() => setOptions([...options, ""])}
           />
         </View>
       </View>
