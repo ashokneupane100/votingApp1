@@ -1,5 +1,13 @@
 import { Stack, useLocalSearchParams, router } from "expo-router";
-import { Text, View, StyleSheet, Pressable, Button, ActivityIndicator, Alert } from "react-native";
+import {
+  Text,
+  View,
+  StyleSheet,
+  Pressable,
+  Button,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import { Poll, Vote } from "@/src/types/db";
@@ -17,14 +25,14 @@ export default function PollDetails() {
 
   const fetchPoll = async () => {
     if (!id) return;
-    
+
     setLoading(true);
     const { data, error } = await supabase
       .from("Polls")
       .select("*")
-      .eq('id', id)
-      .single(); 
-    
+      .eq("id", id)
+      .single();
+
     if (error) {
       console.error("Error fetching poll:", error);
       Alert.alert("Error", "Failed to load poll");
@@ -40,14 +48,14 @@ export default function PollDetails() {
   const fetchUserVote = async () => {
     // Only fetch user vote if user is authenticated
     if (!user?.id || !id) return;
-    
+
     const { data, error } = await supabase
       .from("votes")
       .select("*")
-      .eq('poll_id', parseInt(id))
-      .eq('user_id', user.id)
+      .eq("poll_id", parseInt(id))
+      .eq("user_id", user.id)
       .maybeSingle(); // Use maybeSingle since user might not have voted yet
-    
+
     if (error) {
       console.error("Error fetching user vote:", error);
     } else if (data) {
@@ -71,11 +79,11 @@ export default function PollDetails() {
     // Check authentication first
     if (!isAuthenticated) {
       Alert.alert(
-        "Authentication Required", 
+        "Authentication Required",
         "Please sign in with your account to vote on this poll.",
         [
           { text: "Cancel", style: "cancel" },
-          { text: "Sign In", onPress: () => router.push("/login") }
+          { text: "Sign In", onPress: () => router.push("/login") },
         ]
       );
       return;
@@ -93,15 +101,15 @@ export default function PollDetails() {
         option: selected,
         poll_id: poll.id,
         user_id: user.id,
-        ...(userVote?.id && { id: userVote.id }) // Include ID only if updating existing vote
+        ...(userVote?.id && { id: userVote.id }), // Include ID only if updating existing vote
       };
 
       console.log("Vote data:", voteData);
 
       const { data, error } = await supabase
-        .from('votes')
+        .from("votes")
         .upsert(voteData)
-        .select('*')
+        .select("*")
         .single();
 
       if (error) {
@@ -111,7 +119,7 @@ export default function PollDetails() {
         console.log("Vote successful:", data);
         setUserVote(data); // Update the local state
         Alert.alert(
-          "Success", 
+          "Success",
           userVote ? "Your vote has been updated!" : "Thank you for voting!"
         );
       }
@@ -144,14 +152,13 @@ export default function PollDetails() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: "Poll Voting" }} />
-      
+
       {/* Authentication Status */}
       <View style={styles.authContainer}>
         <Text style={styles.authText}>
-          {isAuthenticated 
-            ? `✅ Signed in as: ${user?.email || user?.id}` 
-            : "⚠️ Sign in required to vote"
-          }
+          {isAuthenticated
+            ? `✅ Signed in as: ${user?.email || user?.id}`
+            : "⚠️ Sign in required to vote"}
         </Text>
         {userVote && (
           <Text style={styles.voteStatus}>
@@ -164,18 +171,18 @@ export default function PollDetails() {
 
       <View style={styles.optionsContainer}>
         {poll.options?.map((option, index) => (
-          <Pressable 
-            onPress={() => setSelected(option)} 
+          <Pressable
+            onPress={() => setSelected(option)}
             style={[
               styles.optionContainer,
-              option === selected && styles.selectedOption
-            ]} 
+              option === selected && styles.selectedOption,
+            ]}
             key={`${option}-${index}`}
           >
-            <Feather 
-              name={option === selected ? "check-circle" : "circle"} 
-              size={18} 
-              color={option === selected ? "green" : "gray"} 
+            <Feather
+              name={option === selected ? "check-circle" : "circle"}
+              size={18}
+              color={option === selected ? "green" : "gray"}
             />
             <Text style={option === selected ? styles.selectedText : undefined}>
               {option}
@@ -183,18 +190,15 @@ export default function PollDetails() {
           </Pressable>
         ))}
       </View>
-      
+
       {isAuthenticated ? (
-        <Button 
-          onPress={vote} 
-          title={voting ? "Voting..." : (userVote ? "Update Vote" : "Vote")} 
-          disabled={!selected || voting} 
+        <Button
+          onPress={vote}
+          title={voting ? "Voting..." : userVote ? "Update Vote" : "Vote"}
+          disabled={!selected || voting}
         />
       ) : (
-        <Button 
-          onPress={() => router.push("/login")} 
-          title="Sign In to Vote" 
-        />
+        <Button onPress={() => router.push("/login")} title="Sign In to Vote" />
       )}
     </View>
   );
@@ -207,25 +211,25 @@ const styles = StyleSheet.create({
   },
   centered: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   authContainer: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
     padding: 10,
     borderRadius: 5,
   },
   authText: {
     fontSize: 14,
-    textAlign: 'center',
-    fontWeight: '500',
+    textAlign: "center",
+    fontWeight: "500",
   },
   voteStatus: {
     fontSize: 12,
-    textAlign: 'center',
-    color: '#666',
+    textAlign: "center",
+    color: "#666",
     marginTop: 5,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
   question: {
     fontSize: 20,
