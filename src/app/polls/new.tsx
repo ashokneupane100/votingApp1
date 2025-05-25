@@ -9,6 +9,28 @@ export default function CreatePoll() {
 
   const createPoll = () => {
     console.log("Creating poll...");
+    console.log("Question:", question);
+    console.log("Options:", options);
+  };
+
+  const removeOption = (indexToRemove: number) => {
+    // Prevent removing if there are only 2 options (minimum required)
+    if (options.length <= 2) {
+      return;
+    }
+    
+    const updated = options.filter((_, index) => index !== indexToRemove);
+    setOptions(updated);
+  };
+
+  const updateOption = (index: number, text: string) => {
+    const updated = [...options];
+    updated[index] = text;
+    setOptions(updated);
+  };
+
+  const addOption = () => {
+    setOptions([...options, ""]);
   };
 
   return (
@@ -30,42 +52,34 @@ export default function CreatePoll() {
       <View style={styles.section}>
         <Text style={styles.label}>Answer Options</Text>
         <View style={styles.optionsContainer}>
-          <View>
-            {options.map((option, index) => (
-              <View key={option} style={{ justifyContent: "center" }}>
-                <TextInput
-                  value={option}
-                  onChangeText={(text) => {
-                    const updated = [...options];
-                    updated[index] = text;
-                    setOptions(updated);
-                  }}
-                  key={index}
-                  placeholder={`Option ${index + 1}`}
-                  style={styles.input}
-                />
+          {options.map((option, index) => (
+            <View key={`option-${index}`} style={styles.optionWrapper}>
+              <TextInput
+                value={option}
+                onChangeText={(text) => updateOption(index, text)}
+                placeholder={`Option ${index + 1}`}
+                style={styles.input}
+                placeholderTextColor="#9CA3AF"
+              />
+              {options.length > 2 && (
                 <Feather
                   name="x"
                   size={18}
                   color="gray"
-                  onPress={() => {
-                    //delete options based on index
-                    const updated = [...options];
-                    updated.splice(index, 3);
-                    setOptions(updated);
-                  }}
-                  style={{ position: "absolute", right: 10 }}
+                  onPress={() => removeOption(index)}
+                  style={styles.removeButton}
                 />
-              </View>
-            ))}
-          </View>
+              )}
+            </View>
+          ))}
 
           <Button
             title="Add Option"
-            onPress={() => setOptions([...options, ""])}
+            onPress={addOption}
           />
         </View>
       </View>
+      
       <Button onPress={createPoll} title="Create Poll" />
     </View>
   );
@@ -106,5 +120,15 @@ const styles = StyleSheet.create({
   },
   optionsContainer: {
     gap: 12,
+  },
+  optionWrapper: {
+    position: "relative",
+    justifyContent: "center",
+  },
+  removeButton: {
+    position: "absolute",
+    right: 12,
+    top: "50%",
+    marginTop: -9, // Half of icon size to center it
   },
 });
