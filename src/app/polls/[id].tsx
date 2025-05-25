@@ -2,7 +2,7 @@ import { Stack, useLocalSearchParams, router } from "expo-router";
 import { Text, View, StyleSheet, Pressable, Button, ActivityIndicator, Alert } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { Poll } from "@/src/types/db";
+import { Poll, Vote } from "@/src/types/db";
 import { supabase } from "@/src/lib/supabase";
 import { useAuth } from "@/src/providers/AuthProvider";
 
@@ -13,6 +13,7 @@ export default function PollDetails() {
   const [loading, setLoading] = useState(true);
   const [voting, setVoting] = useState(false);
   const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const [userVote, setUserVote] = useState<Vote | null>(null);
 
   const fetchPoll = async () => {
     if (!id) return;
@@ -36,12 +37,38 @@ export default function PollDetails() {
     setLoading(false);
   };
 
+  const fetchUserVote = async () => {
+    // Only fetch user vote if user is authenticated
+    if (!user?.id || !id) return;
+    
+    const { data, error } = await supabase
+      .from("votes")
+      .select("*")
+      .eq('poll_id', parseInt(id))
+      .eq('user_id', user.id)
+      .maybeSingle(); // Use maybeSingle since user might not have voted yet
+    
+    if (error) {
+      console.error("Error fetching user vote:", error);
+    } else if (data) {
+      setUserVote(data);
+      setSelected(data.option); // Set the selected option to what user previously voted
+    }
+  };
+
   useEffect(() => {
     fetchPoll();
   }, [id]);
 
+  useEffect(() => {
+    // Fetch user vote only when user is authenticated and poll is loaded
+    if (isAuthenticated && user?.id && poll?.id) {
+      fetchUserVote();
+    }
+  }, [isAuthenticated, user?.id, poll?.id]);
+
   const vote = async () => {
-    // Check if user is properly authenticated (not anonymous)
+    // Check authentication first
     if (!isAuthenticated) {
       Alert.alert(
         "Authentication Required", 
@@ -54,61 +81,39 @@ export default function PollDetails() {
       return;
     }
 
-    if (!selected || !poll?.id) {
+    if (!selected || !poll?.id || !user?.id) {
       Alert.alert("Error", "Please select an option");
       return;
     }
 
-    console.log("Voting with authenticated user:");
-    console.log("- User ID:", user?.id);
-    console.log("- Is Anonymous:", user?.is_anonymous);
-    console.log("- Is Authenticated:", isAuthenticated);
-    console.log("- Selected option:", selected);
-    console.log("- Poll ID:", poll.id);
-
     setVoting(true);
 
     try {
-      // Check if user already voted on this poll
-      const { data: existingVote, error: checkError } = await supabase
-        .from('votes')
-        .select('id')
-        .eq('poll_id', poll.id)
-        .eq('user_id', user!.id)
-        .maybeSingle();
-
-      if (checkError) {
-        console.error("Error checking existing vote:", checkError);
-      }
-
-      if (existingVote) {
-        Alert.alert("Already Voted", "You have already voted on this poll");
-        setVoting(false);
-        return;
-      }
-
-      // Prepare vote data
       const voteData = {
         option: selected,
-        poll_id: parseInt(String(poll.id)),
-        user_id: user!.id
+        poll_id: poll.id,
+        user_id: user.id,
+        ...(userVote?.id && { id: userVote.id }) // Include ID only if updating existing vote
       };
 
-      console.log("Inserting vote data:", voteData);
+      console.log("Vote data:", voteData);
 
-      // Cast the vote
       const { data, error } = await supabase
         .from('votes')
-        .insert(voteData)
-        .select();
+        .upsert(voteData)
+        .select('*')
+        .single();
 
       if (error) {
-        console.error("Voting error details:", error);
-        Alert.alert("Error", `Failed to cast vote: ${error.message}`);
+        console.error("Error voting:", error);
+        Alert.alert("Error", `Failed to vote: ${error.message}`);
       } else {
         console.log("Vote successful:", data);
-        Alert.alert("Success", "Thank you for voting!");
-        // Optionally redirect to results or refresh
+        setUserVote(data); // Update the local state
+        Alert.alert(
+          "Success", 
+          userVote ? "Your vote has been updated!" : "Thank you for voting!"
+        );
       }
     } catch (err) {
       console.error("Unexpected voting error:", err);
@@ -148,6 +153,11 @@ export default function PollDetails() {
             : "⚠️ Sign in required to vote"
           }
         </Text>
+        {userVote && (
+          <Text style={styles.voteStatus}>
+            Previously voted for: "{userVote.option}"
+          </Text>
+        )}
       </View>
 
       <Text style={styles.question}>{poll.question}</Text>
@@ -177,7 +187,7 @@ export default function PollDetails() {
       {isAuthenticated ? (
         <Button 
           onPress={vote} 
-          title={voting ? "Voting..." : "Vote"} 
+          title={voting ? "Voting..." : (userVote ? "Update Vote" : "Vote")} 
           disabled={!selected || voting} 
         />
       ) : (
@@ -209,6 +219,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     fontWeight: '500',
+  },
+  voteStatus: {
+    fontSize: 12,
+    textAlign: 'center',
+    color: '#666',
+    marginTop: 5,
+    fontStyle: 'italic',
   },
   question: {
     fontSize: 20,
