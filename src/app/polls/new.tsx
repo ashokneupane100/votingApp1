@@ -1,16 +1,46 @@
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import { useState } from "react";
-import { Text, View, StyleSheet, TextInput, Button } from "react-native";
+import { Text, View, StyleSheet, TextInput, Button, Alert } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { supabase } from "@/src/lib/supabase";
 
 export default function CreatePoll() {
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
+  const[error,setError] = useState("")
 
-  const createPoll = () => {
-    console.log("Creating poll...");
-    console.log("Question:", question);
-    console.log("Options:", options);
+  const createPoll =async () => {
+    setError("")
+    if(!question){
+      setError("Please enter a question")
+    }
+    const validOptions=options.filter(o=>!!o);
+    if(validOptions.length<2){
+      setError("Please enter at least two valid options");
+      return;
+    }
+
+const { data, error } = await supabase
+  .from('Polls')
+  .insert([
+    { question, options:validOptions },
+  ])
+  .select()
+
+if (error) {
+  Alert.alert("Failed to create the poll");
+  console.log(error);
+  return;
+}
+
+router.back();
+
+          
+          
+
+
+
+    
   };
 
   const removeOption = (indexToRemove: number) => {
@@ -81,6 +111,7 @@ export default function CreatePoll() {
       </View>
       
       <Button onPress={createPoll} title="Create Poll" />
+      <Text style={{color:"crimson"}}>{error}</Text>
     </View>
   );
 }
