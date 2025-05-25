@@ -7,40 +7,31 @@ import { supabase } from "@/src/lib/supabase";
 export default function CreatePoll() {
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
-  const[error,setError] = useState("")
+  const [error, setError] = useState("");
 
-  const createPoll =async () => {
-    setError("")
-    if(!question){
-      setError("Please enter a question")
+  const createPoll = async () => {
+    setError("");
+    if (!question) {
+      setError("Please enter a question");
     }
-    const validOptions=options.filter(o=>!!o);
-    if(validOptions.length<2){
+    const validOptions = options.filter((o) => !!o);
+    if (validOptions.length < 2) {
       setError("Please enter at least two valid options");
       return;
     }
 
-const { data, error } = await supabase
-  .from('Polls')
-  .insert([
-    { question, options:validOptions },
-  ])
-  .select()
+    const { data, error } = await supabase
+      .from("Polls")
+      .insert([{ question, options: validOptions }])
+      .select();
 
-if (error) {
-  Alert.alert("Failed to create the poll");
-  console.log(error);
-  return;
-}
+    if (error) {
+      Alert.alert("Failed to create the poll");
+      console.log(error);
+      return;
+    }
 
-router.back();
-
-          
-          
-
-
-
-    
+    router.back();
   };
 
   const removeOption = (indexToRemove: number) => {
@@ -48,7 +39,7 @@ router.back();
     if (options.length <= 2) {
       return;
     }
-    
+
     const updated = options.filter((_, index) => index !== indexToRemove);
     setOptions(updated);
   };
@@ -103,15 +94,12 @@ router.back();
             </View>
           ))}
 
-          <Button
-            title="Add Option"
-            onPress={addOption}
-          />
+          <Button title="Add Option" onPress={addOption} />
         </View>
       </View>
-      
+
       <Button onPress={createPoll} title="Create Poll" />
-      <Text style={{color:"crimson"}}>{error}</Text>
+      <Text style={{ color: "crimson" }}>{error}</Text>
     </View>
   );
 }
