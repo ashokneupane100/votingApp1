@@ -1,25 +1,47 @@
 import { AntDesign } from "@expo/vector-icons";
 import { Link, router, Stack } from "expo-router";
+import { useEffect, useState } from "react";
 import { FlatList, StyleSheet, Text } from "react-native";
+import { supabase } from "../lib/supabase";
 
-// Sample data (unchanged)
-const polls = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }];
+export default function HomeScreen() {
+  const [polls, setPolls] = useState([]);
 
-export default function Page() {
+  useEffect(() => {
+    const fetchPolls = async () => {
+      console.log("fetching....");
+
+      let { data: polls, error } = await supabase
+        .from("Polls") 
+        .select("*");
+
+      if (error) {
+        console.error("Error fetching polls:", error);
+        return;
+      }
+
+      if (polls) {
+        setPolls(polls);
+      }
+    };
+
+    fetchPolls(); // Call the async function
+  }, []); // Empty dependency array to run once on mount
+
   return (
     <>
       <Stack.Screen
         options={{
-          title: "Polls",
+          title: "Poll App Made by Ashok Neupane",
           headerRight: () => (
             <AntDesign
               onPress={() => router.push("/polls/new")}
               name="plus"
               size={30}
-              style={{ color: "blue", marginRight: 20 }} // Fixed: Removed quotes around marginRight value
+              style={{ color: "blue", marginRight: 20 }}
             />
           ),
-        }} // Fixed: Removed extra comma
+        }}
       />
 
       <FlatList
