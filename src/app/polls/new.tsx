@@ -32,30 +32,32 @@ export default function CreatePoll() {
         <View style={styles.optionsContainer}>
           <View>
             {options.map((option, index) => (
-              <View key={option} style={{justifyContent:"center"}}>
-              <TextInput
-                value={option}
-                onChangeText={(text) => {
-                  const updated = [...options];
-                  updated[index] = text;
-                  setOptions(updated);
-                }}
-                key={index}
-                placeholder={`Option ${index + 1}`}
-                style={styles.input}
-              />
-              <Feather name="x" size={18} color="gray"
-              onPress={()=>{
-                //delete options based on index
-                const updated = [...options];
-                updated.splice(index,3);
-                setOptions(updated);
-              }} 
-              
-              style={{position:"absolute",right:10}} />
-               </View>
+              <View key={option} style={{ justifyContent: "center" }}>
+                <TextInput
+                  value={option}
+                  onChangeText={(text) => {
+                    const updated = [...options];
+                    updated[index] = text;
+                    setOptions(updated);
+                  }}
+                  key={index}
+                  placeholder={`Option ${index + 1}`}
+                  style={styles.input}
+                />
+                <Feather
+                  name="x"
+                  size={18}
+                  color="gray"
+                  onPress={() => {
+                    //delete options based on index
+                    const updated = [...options];
+                    updated.splice(index, 3);
+                    setOptions(updated);
+                  }}
+                  style={{ position: "absolute", right: 10 }}
+                />
+              </View>
             ))}
-           
           </View>
 
           <Button
