@@ -1,28 +1,30 @@
 import { AntDesign } from "@expo/vector-icons";
 import { Link, router, Stack } from "expo-router";
 import { useEffect, useState } from "react";
-import { FlatList, StyleSheet, Text } from "react-native";
+import { Alert, FlatList, StyleSheet, Text } from "react-native";
 import { supabase } from "../lib/supabase";
 
 export default function HomeScreen() {
   const [polls, setPolls] = useState([]);
 
   useEffect(() => {
+    // Optional: Ensure Supabase client is only used on the client side (to avoid SSR issues)
+    if (!supabase) return;
+
     const fetchPolls = async () => {
       console.log("fetching....");
 
-      let { data: polls, error } = await supabase
-        .from("Polls") 
+      let { data, error } = await supabase
+        .from("Polls") // Ensure this matches your Supabase table name (case-sensitive)
         .select("*");
 
       if (error) {
-        console.error("Error fetching polls:", error);
+        Alert.alert("Error", "Error fetching data: " + error.message);
         return;
       }
 
-      if (polls) {
-        setPolls(polls);
-      }
+      console.log(data);
+      setPolls(data || []); // Ensure data is an array, fallback to empty array if null
     };
 
     fetchPolls(); // Call the async function
@@ -51,7 +53,7 @@ export default function HomeScreen() {
         renderItem={({ item }) => (
           <Link style={styles.pollContainer} href={`/polls/${item.id}`}>
             <Text style={styles.pollTitle}>
-              {item.id}. Example Poll Question
+              {item.id}. {item.question || "Example Poll Question"}
             </Text>
           </Link>
         )}
