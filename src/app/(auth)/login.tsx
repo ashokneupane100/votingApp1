@@ -9,6 +9,7 @@ import {
   Text,
 } from "react-native";
 import { supabase } from "@/src/lib/supabase";
+import { Stack } from "expo-router";
 
 AppState.addEventListener("change", (state) => {
   if (state === "active") {
@@ -38,7 +39,7 @@ export default function Auth() {
   async function signInWithEmail() {
     setLoading(true);
     setMessage(""); // Clear previous messages
-    
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -46,11 +47,23 @@ export default function Auth() {
 
     if (error) {
       if (error.message.includes("Invalid login credentials")) {
-        showMessage("❌ Invalid email or password. Please check your credentials and try again.", "error");
-        Alert.alert("Sign In Failed", "Invalid email or password. Please check your credentials and try again.");
+        showMessage(
+          "❌ Invalid email or password. Please check your credentials and try again.",
+          "error"
+        );
+        Alert.alert(
+          "Sign In Failed",
+          "Invalid email or password. Please check your credentials and try again."
+        );
       } else if (error.message.includes("Email not confirmed")) {
-        showMessage("📧 Please check your email and click the verification link before signing in.", "error");
-        Alert.alert("Email Not Verified", "Please check your email and click the verification link before signing in.");
+        showMessage(
+          "📧 Please check your email and click the verification link before signing in.",
+          "error"
+        );
+        Alert.alert(
+          "Email Not Verified",
+          "Please check your email and click the verification link before signing in."
+        );
       } else {
         showMessage(`❌ Sign in failed: ${error.message}`, "error");
         Alert.alert("Sign In Error", error.message);
@@ -64,7 +77,7 @@ export default function Auth() {
   async function signUpWithEmail() {
     setLoading(true);
     setMessage(""); // Clear previous messages
-    
+
     try {
       const {
         data: { session },
@@ -76,26 +89,30 @@ export default function Auth() {
 
       if (error) {
         console.log("Sign up error:", error);
-        
-        if (error.message.includes("User already registered") || 
-            error.message.includes("already registered") ||
-            error.status === 422) {
-          
+
+        if (
+          error.message.includes("User already registered") ||
+          error.message.includes("already registered") ||
+          error.status === 422
+        ) {
           const userMessage = `🚫 Account Already Exists!\n\nA user with the email "${email}" has already been registered.\n\nPlease try signing in instead or use a different email address.`;
           showMessage(userMessage, "error");
-          
+
           // Also show the native alert
           Alert.alert(
-            "Account Already Exists", 
+            "Account Already Exists",
             `A user with the email "${email}" has already been registered. Please try signing in instead or use a different email address.`,
-            [
-              { text: "OK", style: "default" }
-            ]
+            [{ text: "OK", style: "default" }]
           );
-          
         } else if (error.message.includes("Password should be at least")) {
-          showMessage("🔒 Password should be at least 6 characters long.", "error");
-          Alert.alert("Weak Password", "Password should be at least 6 characters long.");
+          showMessage(
+            "🔒 Password should be at least 6 characters long.",
+            "error"
+          );
+          Alert.alert(
+            "Weak Password",
+            "Password should be at least 6 characters long."
+          );
         } else if (error.message.includes("Unable to validate email address")) {
           showMessage("📧 Please enter a valid email address.", "error");
           Alert.alert("Invalid Email", "Please enter a valid email address.");
@@ -104,9 +121,12 @@ export default function Auth() {
           Alert.alert("Sign Up Error", error.message);
         }
       } else if (!session) {
-        showMessage("📧 Check your email! We sent you a verification link to activate your account.", "success");
+        showMessage(
+          "📧 Check your email! We sent you a verification link to activate your account.",
+          "success"
+        );
         Alert.alert(
-          "Verification Required", 
+          "Verification Required",
           "Please check your inbox for email verification! Click the link in the email to activate your account."
         );
       } else {
@@ -114,27 +134,37 @@ export default function Auth() {
       }
     } catch (err) {
       console.error("Unexpected error during sign up:", err);
-      showMessage("❌ An unexpected error occurred. Please try again.", "error");
+      showMessage(
+        "❌ An unexpected error occurred. Please try again.",
+        "error"
+      );
       Alert.alert("Error", "An unexpected error occurred. Please try again.");
     }
-    
+
     setLoading(false);
   }
 
   return (
     <View style={styles.container}>
+      <Stack.Screen options={{ title: "oh man" }} />
       <Text style={styles.title}>Sign in or Create an account:</Text>
-      
+
       {/* ON-SCREEN MESSAGE FOR USERS */}
       {message !== "" && (
-        <View style={[
-          styles.messageContainer, 
-          messageType === "error" ? styles.errorMessage : styles.successMessage
-        ]}>
-          <Text style={[
-            styles.messageText,
-            messageType === "error" ? styles.errorText : styles.successText
-          ]}>
+        <View
+          style={[
+            styles.messageContainer,
+            messageType === "error"
+              ? styles.errorMessage
+              : styles.successMessage,
+          ]}
+        >
+          <Text
+            style={[
+              styles.messageText,
+              messageType === "error" ? styles.errorText : styles.successText,
+            ]}
+          >
             {message}
           </Text>
         </View>
